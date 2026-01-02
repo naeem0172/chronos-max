@@ -1,19 +1,8 @@
-Import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Calendar, 
-  Clock, 
-  Globe, 
-  Heart, 
-  Wind, 
-  Moon, 
-  Rocket, 
-  Award, 
-  Languages, 
-  Share2, 
-  Zap,
-  Terminal,
-  User,
-  Coffee
+  Calendar, Clock, Globe, Heart, Wind, Moon, Rocket, Award, Share2, Zap,
+  Terminal, User, Coffee
 } from 'lucide-react';
 
 const TRANSLATIONS = {
@@ -44,8 +33,7 @@ const TRANSLATIONS = {
     bioTitle: "Haxor Bio Generator",
     copyBio: "Copy Bio",
     stats: "Vital Statistics",
-    cosmic: "Cosmic Journey",
-    language: "Language"
+    cosmic: "Cosmic Journey"
   },
   bn: {
     title: "ক্রোনোস ম্যাক্স",
@@ -74,8 +62,7 @@ const TRANSLATIONS = {
     bioTitle: "হ্যাক্সর বায়ো জেনারেটর",
     copyBio: "বায়ো কপি করুন",
     stats: "গুরুত্বপূর্ণ পরিসংখ্যান",
-    cosmic: "মহাজাগতিক যাত্রা",
-    language: "ভাষা"
+    cosmic: "মহাজাগতিক যাত্রা"
   }
 };
 
@@ -106,14 +93,13 @@ export default function App() {
     if (!birthDate) return null;
     const start = new Date(`${birthDate}T${birthTime}`);
     const diff = now - start;
-
     if (diff < 0) return null;
 
     const totalSeconds = Math.floor(diff / 1000);
     const totalMinutes = Math.floor(totalSeconds / 60);
     const totalHours = Math.floor(totalMinutes / 60);
     const totalDays = Math.floor(totalHours / 24);
-    
+
     let years = now.getFullYear() - start.getFullYear();
     let months = now.getMonth() - start.getMonth();
     let days = now.getDate() - start.getDate();
@@ -134,7 +120,7 @@ export default function App() {
     const daysToBday = Math.ceil((nextBday - now) / (1000 * 60 * 60 * 24));
 
     return {
-      years, months, days, 
+      years, months, days,
       totalDays, totalHours, totalMinutes, totalSeconds,
       daysToBday,
       heartbeats: totalMinutes * 72,
@@ -146,30 +132,41 @@ export default function App() {
 
   const generateBio = () => {
     if (!ageData) return "";
-    const nameStr = name || "User";
-    const templates = {
-      en: `🚀 ${nameStr} | Living for ${ageData.years} years of excellence. 
-Experienced ${ageData.totalDays.toLocaleString()} sunrises. 
-Heart has beaten over ${(ageData.heartbeats / 1000000).toFixed(1)}M times. 
-Current Mission: Decoding reality at 100% efficiency. 
-Created by Haxor (Bangladesh).`,
-      bn: `🚀 ${nameStr} | ${ageData.years} বছরের শ্রেষ্ঠত্বের পথচলা। 
-দেখা হয়েছে ${ageData.totalDays.toLocaleString()} টি সূর্যোদয়। 
-হৃদয় স্পন্দিত হয়েছে ${(ageData.heartbeats / 1000000).toFixed(1)} মিলিয়নেরও বেশি বার। 
-বর্তমান লক্ষ্য: জীবনের নতুন কোড উন্মোচন। 
-তৈরি করেছেন হ্যাক্সর (বাংলাদেশ)।`
-    };
-    return templates[lang];
+    const n = name || "User";
+    return lang === 'en'
+      ? `🚀 ${n} | Living for ${ageData.years} years.\nSunrises: ${ageData.totalDays}\nHeartbeats: ${(ageData.heartbeats/1e6).toFixed(1)}M\nBuilt by Haxor`
+      : `🚀 ${n} | ${ageData.years} বছর।\nসূর্যোদয়: ${ageData.totalDays}\nহৃদস্পন্দন: ${(ageData.heartbeats/1e6).toFixed(1)}M\nতৈরি: হ্যাক্সর`;
   };
 
-  const copyToClipboard = (text) => {
-    const el = document.createElement('textarea');
-    el.value = text;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-  };
+  const copyToClipboard = (text) => navigator.clipboard.writeText(text);
 
-  return (/* JSX unchanged */);
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+
+        <header className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">{t.title}</h1>
+          <div className="space-x-2">
+            <button onClick={() => setLang('en')}>EN</button>
+            <button onClick={() => setLang('bn')}>BN</button>
+          </div>
+        </header>
+
+        <input className="w-full p-2" placeholder={t.namePlaceholder} value={name} onChange={e=>setName(e.target.value)} />
+        <input type="date" value={birthDate} onChange={e=>setBirthDate(e.target.value)} />
+        <input type="time" value={birthTime} onChange={e=>setBirthTime(e.target.value)} />
+
+        {!showResults && <button onClick={()=>setShowResults(true)}>{t.calculate}</button>}
+
+        {showResults && ageData && (
+          <>
+            <div>{ageData.years} {t.years}</div>
+            <div>{ageData.daysToBday} days to birthday</div>
+            <pre>{generateBio()}</pre>
+            <button onClick={()=>copyToClipboard(generateBio())}>{t.copyBio}</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
